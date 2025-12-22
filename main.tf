@@ -40,7 +40,7 @@ resource "aws_internet_gateway" "this" {
 
 # Subnets
 resource "aws_subnet" "private" {
-  for_each = { for s in local.private_subnets : s.name => s }
+  for_each = { for s in local.private_subnets : s.key => s }
 
   region               = var.region
   vpc_id               = aws_vpc.this.id
@@ -53,7 +53,7 @@ resource "aws_subnet" "private" {
 }
 
 resource "aws_subnet" "public" {
-  for_each = { for s in local.public_subnets : s.name => s }
+  for_each = { for s in local.public_subnets : s.key => s }
 
   region                  = var.region
   vpc_id                  = aws_vpc.this.id
@@ -67,7 +67,7 @@ resource "aws_subnet" "public" {
 }
 
 resource "aws_subnet" "netatt" {
-  for_each = { for s in local.netatt_subnets : s.name => s }
+  for_each = { for s in local.netatt_subnets : s.key => s }
 
   region               = var.region
   vpc_id               = aws_vpc.this.id
@@ -81,7 +81,7 @@ resource "aws_subnet" "netatt" {
 
 # Route tables
 resource "aws_route_table" "private" {
-  for_each = { for s in local.private_subnets : s.name => s }
+  for_each = { for s in local.private_subnets : s.key => s }
 
   region = var.region
   vpc_id = aws_vpc.this.id
@@ -91,7 +91,7 @@ resource "aws_route_table" "private" {
   }
 }
 resource "aws_route_table_association" "private" {
-  for_each = { for s in local.private_subnets : s.name => s }
+  for_each = { for s in local.private_subnets : s.key => s }
 
   region         = var.region
   subnet_id      = aws_subnet.private[each.key].id
@@ -99,7 +99,7 @@ resource "aws_route_table_association" "private" {
 }
 
 resource "aws_route_table" "public" {
-  for_each = { for s in local.public_subnets : s.name => s }
+  for_each = { for s in local.public_subnets : s.key => s }
 
   region = var.region
   vpc_id = aws_vpc.this.id
@@ -109,7 +109,7 @@ resource "aws_route_table" "public" {
   }
 }
 resource "aws_route_table_association" "public" {
-  for_each = { for s in local.public_subnets : s.name => s }
+  for_each = { for s in local.public_subnets : s.key => s }
 
   region         = var.region
   subnet_id      = aws_subnet.public[each.key].id
@@ -117,7 +117,7 @@ resource "aws_route_table_association" "public" {
 }
 
 resource "aws_route_table" "netatt" {
-  for_each = { for s in local.netatt_subnets : s.name => s }
+  for_each = { for s in local.netatt_subnets : s.key => s }
 
   region = var.region
   vpc_id = aws_vpc.this.id
@@ -127,7 +127,7 @@ resource "aws_route_table" "netatt" {
   }
 }
 resource "aws_route_table_association" "netatt" {
-  for_each = { for s in local.netatt_subnets : s.name => s }
+  for_each = { for s in local.netatt_subnets : s.key => s }
 
   region         = var.region
   subnet_id      = aws_subnet.netatt[each.key].id
@@ -146,7 +146,7 @@ resource "aws_network_acl" "private" {
   }
 }
 resource "aws_network_acl_association" "private" {
-  for_each = { for s in local.private_subnets : s.name => s }
+  for_each = { for s in local.private_subnets : s.key => s }
 
   region         = var.region
   network_acl_id = aws_network_acl.private[each.value.layer].id
@@ -164,7 +164,7 @@ resource "aws_network_acl" "public" {
   }
 }
 resource "aws_network_acl_association" "public" {
-  for_each = { for s in local.public_subnets : s.name => s }
+  for_each = { for s in local.public_subnets : s.key => s }
 
   region         = var.region
   network_acl_id = aws_network_acl.public[each.value.layer].id
@@ -182,7 +182,7 @@ resource "aws_network_acl" "netatt" {
   }
 }
 resource "aws_network_acl_association" "netatt" {
-  for_each = { for s in local.netatt_subnets : s.name => s }
+  for_each = { for s in local.netatt_subnets : s.key => s }
 
   region         = var.region
   network_acl_id = aws_network_acl.netatt[each.value.layer].id
@@ -219,7 +219,7 @@ resource "aws_nat_gateway" "zonal" {
   region            = var.region
   allocation_id     = aws_eip.ngw[each.key].id
   connectivity_type = "public"
-  subnet_id         = aws_subnet.public[each.value.name].id
+  subnet_id         = aws_subnet.public[each.value.key].id
 
   tags = {
     Name = format("%s-ngw-%s", var.name_prefix, each.value.az_suffix)

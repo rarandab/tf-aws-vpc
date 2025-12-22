@@ -4,6 +4,7 @@ locals {
   private_subnets = flatten([
     for s_k, s in var.subnet_layers : [
       for i, az in data.aws_availability_zone.this : {
+        key                  = format("%s/%s", s_k, az.name_suffix)
         name                 = format("%s-%s", s_k, az.name_suffix)
         layer                = s_k
         cidr_block           = length(s.cidr_blocks) > 0 ? s.cidr_blocks[i] : cidrsubnet(s.cidr_block, local.subnet_newbits, i)
@@ -15,6 +16,7 @@ locals {
   public_subnets = flatten([
     for s_k, s in var.subnet_layers : [
       for i, az in data.aws_availability_zone.this : {
+        key                  = format("%s/%s", s_k, az.name_suffix)
         name                 = format("%s-%s", s_k, az.name_suffix)
         layer                = s_k
         cidr_block           = length(s.cidr_blocks) > 0 ? s.cidr_blocks[i] : cidrsubnet(s.cidr_block, local.subnet_newbits, i)
@@ -26,6 +28,7 @@ locals {
   netatt_subnets = flatten([
     for s_k, s in var.subnet_layers : [
       for i, az in data.aws_availability_zone.this : {
+        key                  = format("%s/%s", s_k, az.name_suffix)
         name                 = format("%s-%s", s_k, az.name_suffix)
         layer                = s_k
         cidr_block           = length(s.cidr_blocks) > 0 ? s.cidr_blocks[i] : cidrsubnet(s.cidr_block, local.subnet_newbits, i)
@@ -45,7 +48,7 @@ locals {
       for r in rs : [
         for az_i, az in data.aws_availability_zone.this : {
           key                        = "${rs_k}-${r}"
-          route_table_k              = "${rs_k}-${az.name_suffix}"
+          route_table_k              = "${rs_k}/${az.name_suffix}"
           layer                      = rs_k
           az_suffix                  = az.name_suffix
           destination_cidr_block     = can(cidrhost(r, 0)) ? r : null
@@ -60,7 +63,7 @@ locals {
       for r in rs : [
         for az_i, az in data.aws_availability_zone.this : {
           key                        = "${rs_k}-${r}"
-          route_table_k              = "${rs_k}-${az.name_suffix}"
+          route_table_k              = "${rs_k}/${az.name_suffix}"
           layer                      = rs_k
           az_suffix                  = az.name_suffix
           destination_cidr_block     = can(cidrhost(r, 0)) ? r : null
@@ -75,7 +78,7 @@ locals {
       for r in rs : [
         for az_i, az in data.aws_availability_zone.this : {
           key                        = "${rs_k}-${r}"
-          route_table_k              = "${rs_k}-${az.name_suffix}"
+          route_table_k              = "${rs_k}/${az.name_suffix}"
           layer                      = rs_k
           az_suffix                  = az.name_suffix
           destination_cidr_block     = can(cidrhost(r, 0)) ? r : null
@@ -86,9 +89,9 @@ locals {
     ]
   ])
   routes = merge(
-    { for r in local.routes_ngw_flatten : "${r.key}-${r.az_suffix}" => r },
-    { for r in local.routes_tgw_flatten : "${r.key}-${r.az_suffix}" => r },
-    { for r in local.routes_cwn_flatten : "${r.key}-${r.az_suffix}" => r }
+    { for r in local.routes_ngw_flatten : "${r.key}/${r.az_suffix}" => r },
+    { for r in local.routes_tgw_flatten : "${r.key}/${r.az_suffix}" => r },
+    { for r in local.routes_cwn_flatten : "${r.key}/${r.az_suffix}" => r }
   )
 }
 
