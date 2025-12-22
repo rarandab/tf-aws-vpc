@@ -1,7 +1,7 @@
 # VPC resources
 resource "aws_vpc" "this" {
   region               = var.region
-  cidr_block           = var.cidrs[0]
+  cidr_block           = var.cidr_blocks[0]
   enable_dns_hostnames = var.config.enable_dns_hostnames
   enable_dns_support   = var.config.enable_dns_support
 

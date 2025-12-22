@@ -23,14 +23,14 @@ variable "availability_zone_ids" {
   }
 }
 
-variable "cidrs" {
+variable "cidr_blocks" {
   description = "VPC CIDRs"
   type        = list(string)
   validation {
-    condition = length(var.cidrs) > 0 && alltrue([
-      for cidr in var.cidrs : can(cidrhost(cidr, 0))
+    condition = length(var.cidr_blocks) > 0 && alltrue([
+      for cidr in var.cidr_blocks : can(cidrhost(cidr, 0))
     ])
-    error_message = "The cidrs variable must have at least one component and each component must be a valid CIDR block."
+    error_message = "The cidr_blocks variable must have at least one component and each component must be a valid CIDR block."
   }
 }
 
