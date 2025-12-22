@@ -85,12 +85,6 @@ variable "subnet_layers" {
   }
 }
 
-variable "route_table_per_az" {
-  description = "Create a route table per availability zone"
-  type        = bool
-  default     = false
-}
-
 variable "nat_gateway" {
   description = "NAT Gateway configuration"
   type = object({

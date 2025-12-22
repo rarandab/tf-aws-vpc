@@ -4,7 +4,7 @@ variables {
   name_prefix           = "test"
   region                = "eu-west-1"
   availability_zone_ids = ["euw1-az1", "euw1-az2"]
-  cidrs                 = ["10.0.0.0/20"]
+  cidr_blocks                 = ["10.0.0.0/20"]
   subnet_layers = {
     pri = {
       cidr_blocks = ["10.0.0.0/25", "10.0.0.128/25"]

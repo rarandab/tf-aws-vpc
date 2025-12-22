@@ -3,6 +3,11 @@ output "vpc" {
   value       = aws_vpc.this
 }
 
+output "azs" {
+  description = "A list of availability zones specified as argument to this module"
+  value       = data.aws_availability_zone.this[*].name
+}
+
 output "subnets" {
   description = "Subnets attributes"
   value = merge(
