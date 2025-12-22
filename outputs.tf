@@ -5,29 +5,29 @@ output "vpc" {
 
 output "subnets" {
   description = "Subnets attributes"
-  value = {
-    public  = aws_subnet.public
-    private = aws_subnet.private
-    netatt  = aws_subnet.netatt
-  }
+  value = merge(
+    aws_subnet.public,
+    aws_subnet.private,
+    aws_subnet.netatt
+  )
 }
 
 output "route_tables" {
   description = "Route tables attributes"
-  value = {
-    public  = aws_route_table.public
-    private = aws_route_table.private
-    netatt  = aws_route_table.netatt
-  }
+  value = merge(
+    aws_route_table.public,
+    aws_route_table.private,
+    aws_route_table.netatt
+  )
 }
 
 output "network_acls" {
   description = "Network ACLs attributes"
-  value = {
-    public  = aws_network_acl.public
-    private = aws_network_acl.private
-    netatt  = aws_network_acl.netatt
-  }
+  value = merge(
+    aws_network_acl.public,
+    aws_network_acl.private,
+    aws_network_acl.netatt
+  )
 }
 
 output "core_network_attachment" {
