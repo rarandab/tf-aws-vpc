@@ -47,12 +47,12 @@ locals {
     for rs_k, rs in try(var.nat_gateway.routes, {}) : [
       for i in range(length(rs)) : [
         for az_i, az in data.aws_availability_zone.this : {
-          key                        = "${rs_k}-${r_i}"
+          key                        = "${rs_k}-${i}"
           route_table_k              = "${rs_k}/${az.name_suffix}"
           layer                      = rs_k
           az_suffix                  = az.name_suffix
-          destination_cidr_block     = can(cidrhost(r, 0)) ? rs[i] : null
-          destination_prefix_list_id = can(regex("^pl-[0-9a-f]{17}$", r)) ? r[i] : null
+          destination_cidr_block     = can(cidrhost(rs[i], 0)) ? rs[i] : null
+          destination_prefix_list_id = can(regex("^pl-[0-9a-f]{17}$", rs[i])) ? rs[i] : null
         }
       ]
     ]
@@ -65,8 +65,8 @@ locals {
           route_table_k              = "${rs_k}/${az.name_suffix}"
           layer                      = rs_k
           az_suffix                  = az.name_suffix
-          destination_cidr_block     = can(cidrhost(r, 0)) ? rs[i] : null
-          destination_prefix_list_id = can(regex("^pl-[0-9a-f]{17}$", r)) ? r[i] : null
+          destination_cidr_block     = can(cidrhost(rs[i], 0)) ? rs[i] : null
+          destination_prefix_list_id = can(regex("^pl-[0-9a-f]{17}$", rs[i])) ? rs[i] : null
         }
       ]
     ]
@@ -75,12 +75,12 @@ locals {
     for rs_k, rs in try(var.transit_gateway_attach.routes, {}) : [
       for i in range(length(rs)) : [
         for az_i, az in data.aws_availability_zone.this : {
-          key                        = "${rs_k}-${r_i}"
+          key                        = "${rs_k}-${i}"
           route_table_k              = "${rs_k}/${az.name_suffix}"
           layer                      = rs_k
           az_suffix                  = az.name_suffix
-          destination_cidr_block     = can(cidrhost(r, 0)) ? rs[i] : null
-          destination_prefix_list_id = can(regex("^pl-[0-9a-f]{17}$", r)) ? r[i] : null
+          destination_cidr_block     = can(cidrhost(rs[i], 0)) ? rs[i] : null
+          destination_prefix_list_id = can(regex("^pl-[0-9a-f]{17}$", rs[i])) ? rs[i] : null
         }
       ]
     ]
