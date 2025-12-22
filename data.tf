@@ -45,42 +45,42 @@ locals {
   )
   routes_ngw_flatten = flatten([
     for rs_k, rs in try(var.nat_gateway.routes, {}) : [
-      for r_i, r in rs : [
+      for i in range(length(rs)) : [
         for az_i, az in data.aws_availability_zone.this : {
           key                        = "${rs_k}-${r_i}"
           route_table_k              = "${rs_k}/${az.name_suffix}"
           layer                      = rs_k
           az_suffix                  = az.name_suffix
-          destination_cidr_block     = can(cidrhost(r, 0)) ? r : null
-          destination_prefix_list_id = can(regex("^pl-[0-9a-f]{17}$", r)) ? r : null
+          destination_cidr_block     = can(cidrhost(r, 0)) ? rs[i] : null
+          destination_prefix_list_id = can(regex("^pl-[0-9a-f]{17}$", r)) ? r[i] : null
         }
       ]
     ]
   ])
   routes_cwn_flatten = flatten([
     for rs_k, rs in try(var.core_network_attach.routes, {}) : [
-      for r_i, r in rs : [
+      for i in range(length(rs)) : [
         for az_i, az in data.aws_availability_zone.this : {
-          key                        = "${rs_k}-${r_i}"
+          key                        = "${rs_k}-${i}"
           route_table_k              = "${rs_k}/${az.name_suffix}"
           layer                      = rs_k
           az_suffix                  = az.name_suffix
-          destination_cidr_block     = can(cidrhost(r, 0)) ? r : null
-          destination_prefix_list_id = can(regex("^pl-[0-9a-f]{17}$", r)) ? r : null
+          destination_cidr_block     = can(cidrhost(r, 0)) ? rs[i] : null
+          destination_prefix_list_id = can(regex("^pl-[0-9a-f]{17}$", r)) ? r[i] : null
         }
       ]
     ]
   ])
   routes_tgw_flatten = flatten([
     for rs_k, rs in try(var.transit_gateway_attach.routes, {}) : [
-      for r_i, r in rs : [
+      for i in range(length(rs)) : [
         for az_i, az in data.aws_availability_zone.this : {
           key                        = "${rs_k}-${r_i}"
           route_table_k              = "${rs_k}/${az.name_suffix}"
           layer                      = rs_k
           az_suffix                  = az.name_suffix
-          destination_cidr_block     = can(cidrhost(r, 0)) ? r : null
-          destination_prefix_list_id = can(regex("^pl-[0-9a-f]{17}$", r)) ? r : null
+          destination_cidr_block     = can(cidrhost(r, 0)) ? rs[i] : null
+          destination_prefix_list_id = can(regex("^pl-[0-9a-f]{17}$", r)) ? r[i] : null
         }
       ]
     ]
