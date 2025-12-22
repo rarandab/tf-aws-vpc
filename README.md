@@ -124,7 +124,7 @@ module "vpc" {
 
 | Name | Version |
 |------|---------|
-| aws | 6.27.0 |
+| aws | >= 6.27.0 |
 ## Inputs
 
 | Name | Description | Type | Default | Required |
