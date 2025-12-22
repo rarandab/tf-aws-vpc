@@ -53,7 +53,6 @@ locals {
           az_suffix                  = az.name_suffix
           destination_cidr_block     = can(cidrhost(r, 0)) ? r : null
           destination_prefix_list_id = can(regex("^pl-[0-9a-f]{17}$", r)) ? r : null
-          nat_gateway_id             = var.nat_gateway.mode == "regional" ? aws_nat_gateway.regional[0].id : aws_nat_gateway.zonal[az.name_suffix].id
         }
       ]
     ]
@@ -68,7 +67,6 @@ locals {
           az_suffix                  = az.name_suffix
           destination_cidr_block     = can(cidrhost(r, 0)) ? r : null
           destination_prefix_list_id = can(regex("^pl-[0-9a-f]{17}$", r)) ? r : null
-          core_network_arn           = var.core_network_attach.arn
         }
       ]
     ]
@@ -83,7 +81,6 @@ locals {
           az_suffix                  = az.name_suffix
           destination_cidr_block     = can(cidrhost(r, 0)) ? r : null
           destination_prefix_list_id = can(regex("^pl-[0-9a-f]{17}$", r)) ? r : null
-          transit_gateway_id         = var.transit_gateway_attach.id
         }
       ]
     ]

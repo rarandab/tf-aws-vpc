@@ -296,12 +296,7 @@ resource "aws_route" "ngw" {
   route_table_id             = local.route_tables[each.value.route_table_k].id
   destination_cidr_block     = each.value.destination_cidr_block
   destination_prefix_list_id = each.value.destination_prefix_list_id
-  nat_gateway_id             = each.value.nat_gateway_id
-
-  depends_on = [
-    aws_nat_gateway.regional,
-    aws_nat_gateway.zonal
-  ]
+  nat_gateway_id             = var.nat_gateway.mode == "regional" ? aws_nat_gateway.regional[0].id : aws_nat_gateway.zonal[each.value.az_suffix].id
 }
 
 resource "aws_route" "tgw" {
@@ -311,7 +306,7 @@ resource "aws_route" "tgw" {
   route_table_id             = local.route_tables[each.value.route_table_k].id
   destination_cidr_block     = each.value.destination_cidr_block
   destination_prefix_list_id = each.value.destination_prefix_list_id
-  transit_gateway_id         = each.value.transit_gateway_id
+  transit_gateway_id         = var.transit_gateway_attach.id
 
   depends_on = [
     aws_ec2_transit_gateway_vpc_attachment.this
@@ -325,7 +320,7 @@ resource "aws_route" "cwn" {
   route_table_id             = local.route_tables[each.value.route_table_k].id
   destination_cidr_block     = each.value.destination_cidr_block
   destination_prefix_list_id = each.value.destination_prefix_list_id
-  core_network_arn           = each.value.core_network_arn
+  core_network_arn           = var.core_network_attach.arn
 
   depends_on = [
     aws_networkmanager_vpc_attachment.this
