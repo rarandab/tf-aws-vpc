@@ -232,7 +232,7 @@ resource "aws_nat_gateway" "zonal" {
 resource "aws_networkmanager_vpc_attachment" "this" {
   count = var.core_network_attach != null ? 1 : 0
 
-  subnet_arns          = aws_subnet.netatt[*].arn
+  subnet_arns          = [for k, v in aws_subnet.netatt : v.arn]
   core_network_id      = var.core_network_attach.id
   vpc_arn              = aws_vpc.this.arn
   routing_policy_label = var.core_network_attach.routing_policy_label
@@ -256,7 +256,7 @@ resource "aws_ec2_transit_gateway_vpc_attachment" "this" {
   count = var.transit_gateway_attach != null ? 1 : 0
 
   region                             = var.region
-  subnet_ids                         = aws_subnet.netatt[*].arn
+  subnet_ids                         = [for k, v in aws_subnet.netatt : v.id]
   transit_gateway_id                 = var.transit_gateway_attach.id
   vpc_id                             = aws_vpc.this.id
   appliance_mode_support             = var.transit_gateway_attach.appliance_mode_support ? "enable" : "disable"
@@ -287,4 +287,125 @@ resource "aws_route" "custom" {
     aws_ec2_transit_gateway_vpc_attachment.this,
     aws_networkmanager_vpc_attachment.this
   ]
+}
+
+# FlowLogs
+resource "aws_cloudwatch_log_group" "flow_logs" {
+  count = var.flow_logs != null ? 1 : 0
+
+  region            = var.region
+  name              = format("/flowlogs/%s-vpc", var.name_prefix)
+  retention_in_days = var.flow_logs.retention_in_days
+  kms_key_id        = var.flow_logs.kms_key_arn
+  tags = merge(
+    var.flow_logs.tags,
+    {
+      Name = format("%s-flowlogs", var.name_prefix)
+    }
+  )
+}
+
+data "aws_iam_policy_document" "trust_flow_logs" {
+  statement {
+    effect = "Allow"
+    principals {
+      type        = "Service"
+      identifiers = ["vpc-flow-logs.amazonaws.com"]
+    }
+    actions = ["sts:AssumeRole"]
+    condition {
+      test     = "StringEquals"
+      variable = "aws:SourceAccount"
+      values   = [data.aws_caller_identity.current.account_id]
+    }
+  }
+}
+
+resource "aws_iam_role" "flow_logs" {
+  count = var.flow_logs != null && var.flow_logs.iam_role_arn == null ? 1 : 0
+
+  path               = format("/%s/", var.name_prefix)
+  name               = format("%s-irl-flowlogs", var.name_prefix)
+  assume_role_policy = data.aws_iam_policy_document.trust_flow_logs.json
+  tags = {
+    Name = format("%s-irl-flowlogs", var.name_prefix)
+  }
+}
+
+data "aws_iam_policy_document" "permissions_cw_flow_logs" {
+  count = length(aws_iam_role.flow_logs) == 1 ? 1 : 0
+
+  statement {
+    sid    = "ListLogGroups"
+    effect = "Allow"
+    actions = [
+      "logs:DescribeLogGroups",
+    ]
+    resources = ["*"]
+  }
+  statement {
+    sid    = "ListLogStreams"
+    effect = "Allow"
+    actions = [
+      "logs:DescribeLogStreams",
+    ]
+    resources = [one(aws_cloudwatch_log_group.flow_logs[*].arn)]
+  }
+  statement {
+    sid    = "WriteLogs"
+    effect = "Allow"
+    actions = [
+      "logs:CreateLogStream",
+      "logs:PutLogEvents"
+    ]
+    resources = [format("%s:log-stream:*", one(aws_cloudwatch_log_group.flow_logs[*].arn))]
+  }
+}
+
+resource "aws_iam_role_policy" "permissions_cw_flow_logs" {
+  count = length(aws_iam_role.flow_logs) == 1 ? 1 : 0
+
+  name   = "flowlogs"
+  role   = aws_iam_role.flow_logs[0].id
+  policy = data.aws_iam_policy_document.permissions_cw_flow_logs[0].json
+}
+
+data "aws_iam_policy_document" "permissions_kms_flog_logs" {
+  count = length(aws_iam_role.flow_logs) == 1 && var.flow_logs.kms_key_arn != null ? 1 : 0
+
+  statement {
+    sid    = "UseKey"
+    effect = "Allow"
+    actions = [
+      "kms:Encrypt",
+      "kms:ReEncrypt*",
+      "kms:Descrypt",
+      "kms:GenerateDataKey*",
+      "kms:DescribeKey"
+    ]
+    resources = [var.flow_logs.kms_key_arn]
+    condition {
+      test     = "StringEquals"
+      variable = "kms:ViaService"
+      values   = [format("logs.%s.amazonaws.com", var.region)]
+    }
+  }
+}
+
+resource "aws_iam_role_policy" "permissions_kms_flog_logs" {
+  count = length(aws_iam_role.flow_logs) == 1 && var.flow_logs.kms_key_arn != null ? 1 : 0
+
+  name   = "kms"
+  role   = aws_iam_role.flow_logs[0].id
+  policy = data.aws_iam_policy_document.permissions_kms_flog_logs[0].json
+}
+
+resource "aws_flow_log" "this" {
+  count = var.flow_logs != null ? 1 : 0
+
+  iam_role_arn         = var.flow_logs.iam_role_arn != null ? var.flow_logs.iam_role_arn : aws_iam_role.flow_logs[0].arn
+  log_destination      = aws_cloudwatch_log_group.flow_logs[0].arn
+  log_destination_type = "cloud-watch-logs"
+  traffic_type         = "ALL"
+  vpc_id               = aws_vpc.this.id
 }

@@ -171,3 +171,15 @@ variable "transit_gateway_attach" {
     error_message = "In transit_gateway_attach routes, values must be a list of either valid CIDR blocks or valid prefix list IDs (format: pl-<17-hex-chars>)."
   }
 }
+
+variable "flow_logs" {
+  description = "Flow Logs configuration"
+  type = object({
+    retention_in_days = optional(number, 30)
+    iam_role_arn      = optional(string)
+    kms_key_arn       = optional(string)
+    log_format        = optional(string)
+    tags              = optional(map(string), {})
+  })
+  default = null
+}
