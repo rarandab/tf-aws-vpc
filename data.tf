@@ -56,29 +56,33 @@ locals {
     ]
   ])
   routes_cwn_flatten = flatten([
-    for r_k, r in try(var.core_network_attach.routes, {}) : [
-      for az_i, az in data.aws_availability_zone.this : {
-        key                        = "${r_k}-${r}"
-        route_table_k              = "${r_k}-${az.name_suffix}"
-        layer                      = r_k
-        az_suffix                  = az.name_suffix
-        destination_cidr_block     = can(cidrhost(r, 0)) ? r : null
-        destination_prefix_list_id = can(regex("^pl-[0-9a-f]{17}$", r)) ? r : null
-        core_network_arn           = var.core_network_attach.arn
-      }
+    for rs_k, rs in try(var.core_network_attach.routes, {}) : [
+      for r in rs : [
+        for az_i, az in data.aws_availability_zone.this : {
+          key                        = "${rs_k}-${r}"
+          route_table_k              = "${rs_k}-${az.name_suffix}"
+          layer                      = rs_k
+          az_suffix                  = az.name_suffix
+          destination_cidr_block     = can(cidrhost(r, 0)) ? r : null
+          destination_prefix_list_id = can(regex("^pl-[0-9a-f]{17}$", r)) ? r : null
+          core_network_arn           = var.core_network_attach.arn
+        }
+      ]
     ]
   ])
   routes_tgw_flatten = flatten([
-    for r_k, r in try(var.transit_gateway_attach.routes, {}) : [
-      for az_i, az in data.aws_availability_zone.this : {
-        key                        = "${r_k}-${r}"
-        route_table_k              = "${r_k}-${az.name_suffix}"
-        layer                      = r_k
-        az_suffix                  = az.name_suffix
-        destination_cidr_block     = can(cidrhost(r, 0)) ? r : null
-        destination_prefix_list_id = can(regex("^pl-[0-9a-f]{17}$", r)) ? r : null
-        transit_gateway_id         = var.transit_gateway_attach.id
-      }
+    for rs_k, rs in try(var.transit_gateway_attach.routes, {}) : [
+      for r in rs : [
+        for az_i, az in data.aws_availability_zone.this : {
+          key                        = "${rs_k}-${r}"
+          route_table_k              = "${rs_k}-${az.name_suffix}"
+          layer                      = rs_k
+          az_suffix                  = az.name_suffix
+          destination_cidr_block     = can(cidrhost(r, 0)) ? r : null
+          destination_prefix_list_id = can(regex("^pl-[0-9a-f]{17}$", r)) ? r : null
+          transit_gateway_id         = var.transit_gateway_attach.id
+        }
+      ]
     ]
   ])
   routes = merge(
@@ -94,3 +98,5 @@ data "aws_availability_zone" "this" {
   region  = var.region
   zone_id = var.availability_zone_ids[count.index]
 }
+
+data "aws_caller_identity" "current" {}
