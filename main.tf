@@ -270,21 +270,64 @@ resource "aws_ec2_transit_gateway_vpc_attachment" "this" {
 }
 
 # Routes
-resource "aws_route" "custom" {
-  for_each = local.routes
+//resource "aws_route" "custom" {
+//  for_each = local.routes
+//
+//  region                     = var.region
+//  route_table_id             = local.route_tables[each.value.route_table_k].id
+//  destination_cidr_block     = each.value.destination_cidr_block
+//  destination_prefix_list_id = each.value.destination_prefix_list_id
+//  nat_gateway_id             = try(each.value.nat_gateway_id, null)
+//  transit_gateway_id         = try(each.value.transit_gateway_id, null)
+//  core_network_arn           = try(each.value.core_network_arn, null)
+//
+//  depends_on = [
+//    aws_nat_gateway.regional,
+//    aws_nat_gateway.zonal,
+//    aws_ec2_transit_gateway_vpc_attachment.this,
+//    aws_networkmanager_vpc_attachment.this
+//  ]
+//}
+
+resource "aws_route" "ngw" {
+  for_each = { for r in local.routes_ngw_flatten : "${r.key}/${r.az_suffix}" => r }
 
   region                     = var.region
   route_table_id             = local.route_tables[each.value.route_table_k].id
   destination_cidr_block     = each.value.destination_cidr_block
   destination_prefix_list_id = each.value.destination_prefix_list_id
-  nat_gateway_id             = try(each.value.nat_gateway_id, null)
-  transit_gateway_id         = try(each.value.transit_gateway_id, null)
-  core_network_arn           = try(each.value.core_network_arn, null)
+  nat_gateway_id             = each.value.nat_gateway_id
 
   depends_on = [
     aws_nat_gateway.regional,
-    aws_nat_gateway.zonal,
-    aws_ec2_transit_gateway_vpc_attachment.this,
+    aws_nat_gateway.zonal
+  ]
+}
+
+resource "aws_route" "tgw" {
+  for_each = { for r in local.routes_tgw_flatten : "${r.key}/${r.az_suffix}" => r }
+
+  region                     = var.region
+  route_table_id             = local.route_tables[each.value.route_table_k].id
+  destination_cidr_block     = each.value.destination_cidr_block
+  destination_prefix_list_id = each.value.destination_prefix_list_id
+  transit_gateway_id         = each.value.transit_gateway_id
+
+  depends_on = [
+    aws_ec2_transit_gateway_vpc_attachment.this
+  ]
+}
+
+resource "aws_route" "cwn" {
+  for_each = { for r in local.routes_cwn_flatten : "${r.key}/${r.az_suffix}" => r }
+
+  region                     = var.region
+  route_table_id             = local.route_tables[each.value.route_table_k].id
+  destination_cidr_block     = each.value.destination_cidr_block
+  destination_prefix_list_id = each.value.destination_prefix_list_id
+  core_network_arn           = each.value.core_network_arn
+
+  depends_on = [
     aws_networkmanager_vpc_attachment.this
   ]
 }

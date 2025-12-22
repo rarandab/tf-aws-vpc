@@ -346,14 +346,14 @@ run "public" {
 
   # Custom routes assertions (NAT gateway routes)
   assert {
-    condition     = length(aws_route.custom) > 0
+    condition     = length(aws_route.ngw) > 0
     error_message = "Should create custom routes for NAT gateway traffic"
   }
 
   # Verify routes point to NAT gateway for private subnets
   assert {
     condition = alltrue([
-      for route in aws_route.custom : route.destination_cidr_block == "0.0.0.0/0" ? route.nat_gateway_id == aws_nat_gateway.regional[0].id : true
+      for route in aws_route.ngw : route.destination_cidr_block == "0.0.0.0/0" ? route.nat_gateway_id == aws_nat_gateway.regional[0].id : true
     ])
     error_message = "Default routes should point to the regional NAT gateway"
   }

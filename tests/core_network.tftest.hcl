@@ -197,14 +197,14 @@ run "core_network_attachment" {
 
   # Custom routes assertions (core network routes)
   assert {
-    condition     = length(aws_route.custom) > 0
+    condition     = length(aws_route.cwn) > 0
     error_message = "Should create custom routes for core network traffic"
   }
 
   # Verify routes point to core network for private subnets
   assert {
     condition = alltrue([
-      for route in aws_route.custom : route.core_network_arn != null ? route.core_network_arn == "arn:aws:networkmanager::123456789012:core-network/core-network-0123456789abcdef0" : true
+      for route in aws_route.cwn : route.core_network_arn != null ? route.core_network_arn == "arn:aws:networkmanager::123456789012:core-network/core-network-0123456789abcdef0" : true
     ])
     error_message = "Core network routes should point to the correct core network ARN"
   }
@@ -212,14 +212,14 @@ run "core_network_attachment" {
   # Verify specific route destinations
   assert {
     condition = anytrue([
-      for route in aws_route.custom : route.destination_cidr_block == "192.168.0.0/16"
+      for route in aws_route.cwn : route.destination_cidr_block == "192.168.0.0/16"
     ])
     error_message = "Should create route for 192.168.0.0/16 to core network"
   }
 
   assert {
     condition = anytrue([
-      for route in aws_route.custom : route.destination_cidr_block == "172.16.0.0/12"
+      for route in aws_route.cwn : route.destination_cidr_block == "172.16.0.0/12"
     ])
     error_message = "Should create route for 172.16.0.0/12 to core network"
   }
@@ -425,14 +425,14 @@ run "core_network_attachment_routing_policy" {
 
   # Custom routes assertions (core network routes)
   assert {
-    condition     = length(aws_route.custom) > 0
+    condition     = length(aws_route.cwn) > 0
     error_message = "Should create custom routes for core network traffic"
   }
 
   # Verify routes point to core network for private subnets
   assert {
     condition = alltrue([
-      for route in aws_route.custom : route.core_network_arn != null ? route.core_network_arn == "arn:aws:networkmanager::123456789012:core-network/core-network-0123456789abcdef0" : true
+      for route in aws_route.cwn : route.core_network_arn != null ? route.core_network_arn == "arn:aws:networkmanager::123456789012:core-network/core-network-0123456789abcdef0" : true
     ])
     error_message = "Core network routes should point to the correct core network ARN"
   }
@@ -440,14 +440,14 @@ run "core_network_attachment_routing_policy" {
   # Verify specific route destinations
   assert {
     condition = anytrue([
-      for route in aws_route.custom : route.destination_cidr_block == "192.168.0.0/16"
+      for route in aws_route.cwn : route.destination_cidr_block == "192.168.0.0/16"
     ])
     error_message = "Should create route for 192.168.0.0/16 to core network"
   }
 
   assert {
     condition = anytrue([
-      for route in aws_route.custom : route.destination_cidr_block == "172.16.0.0/12"
+      for route in aws_route.cwn : route.destination_cidr_block == "172.16.0.0/12"
     ])
     error_message = "Should create route for 172.16.0.0/12 to core network"
   }

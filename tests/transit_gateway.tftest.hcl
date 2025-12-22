@@ -174,14 +174,14 @@ run "transit_gateway_attachment" {
 
   # Custom routes assertions (transit gateway routes)
   assert {
-    condition     = length(aws_route.custom) > 0
+    condition     = length(aws_route.tgw) > 0
     error_message = "Should create custom routes for transit gateway traffic"
   }
 
   # Verify routes point to transit gateway for private subnets
   assert {
     condition = alltrue([
-      for route in aws_route.custom : route.transit_gateway_id != null ? route.transit_gateway_id == "tgw-0123456789abcdef0" : true
+      for route in aws_route.tgw : route.transit_gateway_id != null ? route.transit_gateway_id == "tgw-0123456789abcdef0" : true
     ])
     error_message = "Transit gateway routes should point to the correct transit gateway ID"
   }
@@ -189,14 +189,14 @@ run "transit_gateway_attachment" {
   # Verify specific route destinations
   assert {
     condition = anytrue([
-      for route in aws_route.custom : route.destination_cidr_block == "192.168.0.0/16"
+      for route in aws_route.tgw : route.destination_cidr_block == "192.168.0.0/16"
     ])
     error_message = "Should create route for 192.168.0.0/16 to transit gateway"
   }
 
   assert {
     condition = anytrue([
-      for route in aws_route.custom : route.destination_prefix_list_id == "pl-0123456789abcdef0"
+      for route in aws_route.tgw : route.destination_prefix_list_id == "pl-0123456789abcdef0"
     ])
     error_message = "Should create route for prefix list pl-0123456789abcdef0 to transit gateway"
   }
@@ -269,7 +269,7 @@ run "transit_gateway_minimal_config" {
 
   # Verify no custom routes are created when routes are not specified
   assert {
-    condition     = length(aws_route.custom) == 0
+    condition     = length(aws_route.ngw) == 0 && length(aws_route.tgw) == 0 && length(aws_route.cwn) == 0
     error_message = "Should not create custom routes when routes are not specified"
   }
 }

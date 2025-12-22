@@ -154,21 +154,21 @@ run "regional_nat_gateway" {
 
   # Custom routes assertions (NAT gateway routes)
   assert {
-    condition     = length(aws_route.custom) > 0
+    condition     = length(aws_route.ngw) > 0
     error_message = "Should create custom routes for NAT gateway traffic"
   }
 
   # Verify routes point to regional NAT gateway for private subnets
   assert {
     condition = anytrue([
-      for route in aws_route.custom : route.destination_cidr_block == "0.0.0.0/0" && route.nat_gateway_id == aws_nat_gateway.regional[0].id
+      for route in aws_route.ngw : route.destination_cidr_block == "0.0.0.0/0" && route.nat_gateway_id == aws_nat_gateway.regional[0].id
     ])
     error_message = "Default route should point to the regional NAT gateway"
   }
 
   assert {
     condition = anytrue([
-      for route in aws_route.custom : route.destination_cidr_block == "192.168.0.0/16" && route.nat_gateway_id == aws_nat_gateway.regional[0].id
+      for route in aws_route.ngw : route.destination_cidr_block == "192.168.0.0/16" && route.nat_gateway_id == aws_nat_gateway.regional[0].id
     ])
     error_message = "Custom route for 192.168.0.0/16 should point to the regional NAT gateway"
   }
@@ -327,14 +327,14 @@ run "zonal_nat_gateway" {
 
   # Custom routes assertions (NAT gateway routes)
   assert {
-    condition     = length(aws_route.custom) > 0
+    condition     = length(aws_route.ngw) > 0
     error_message = "Should create custom routes for NAT gateway traffic"
   }
 
   # Verify routes point to appropriate zonal NAT gateways
   assert {
     condition = alltrue([
-      for route in aws_route.custom : route.destination_cidr_block == "0.0.0.0/0" ? contains([for ngw in aws_nat_gateway.zonal : ngw.id], route.nat_gateway_id) : true
+      for route in aws_route.ngw : route.destination_cidr_block == "0.0.0.0/0" ? contains([for ngw in aws_nat_gateway.zonal : ngw.id], route.nat_gateway_id) : true
     ])
     error_message = "Default routes should point to zonal NAT gateways"
   }
@@ -342,7 +342,7 @@ run "zonal_nat_gateway" {
   # Verify each private subnet has a route to its corresponding zonal NAT gateway
   assert {
     condition = length([
-      for route in aws_route.custom : route if route.destination_cidr_block == "0.0.0.0/0"
+      for route in aws_route.ngw : route if route.destination_cidr_block == "0.0.0.0/0"
     ]) == 2
     error_message = "Should create 2 default routes (one per private subnet to its zonal NAT gateway)"
   }
