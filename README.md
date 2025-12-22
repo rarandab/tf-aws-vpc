@@ -1,6 +1,118 @@
 # tf-aws-vpc
 Terraform AWS VPC module
 
+## Description
+
+This Terraform module creates a comprehensive AWS VPC infrastructure with support for multiple networking patterns and advanced AWS networking services.
+
+### Key Features
+
+- **Multi-AZ VPC**: Creates a VPC across multiple availability zones with customizable CIDR blocks
+- **Flexible Subnet Layers**: Supports multiple subnet tiers (public, private, network attachment) with configurable CIDR allocation
+- **NAT Gateway Options**: Configurable NAT Gateway deployment in regional or zonal modes for outbound internet connectivity
+- **Transit Gateway Integration**: Optional attachment to AWS Transit Gateway for multi-VPC connectivity
+- **AWS Cloud WAN Support**: Optional integration with AWS Cloud WAN via Network Manager VPC attachments
+- **Advanced Routing**: Customizable route tables with per-AZ or shared routing configurations
+- **Network ACLs**: Automatic creation and association of Network ACLs for different subnet tiers
+- **DHCP Options**: Configurable DHCP options for custom DNS and domain settings
+- **DNS Configuration**: Built-in support for DNS hostnames and resolution within the VPC
+
+### Use Cases
+
+- **Hub and Spoke Networks**: Central VPC with Transit Gateway connectivity to multiple spoke VPCs
+- **Multi-Tier Applications**: Separate subnet layers for web, application, and database tiers
+- **Hybrid Cloud**: Integration with on-premises networks via Transit Gateway or Cloud WAN
+- **Microservices Architecture**: Network segmentation for containerized workloads with EKS/ECS
+- **Enterprise Networking**: Scalable VPC design for large organizations with multiple AWS accounts
+
+## Example Usage
+### Basic multi-tier VPC with regional NAT Gateway
+This example demonstrates creating a basic multi-tier VPC with public, private, and database subnet layers across multiple availability zones, with regional NAT Gateway for outbound internet connectivity from private subnets.
+
+```hcl
+module "vpc" {
+  source = "git::https://github.com/rarandab/tf-aws-vpc"
+
+  name_prefix           = "example"
+  region                = "us-west-2"
+  availability_zone_ids = ["usw2-az1", "usw2-az2"]
+  cidrs                 = ["10.0.0.0/16"]
+
+  subnet_layers = {
+    public = {
+      cidr_block = "10.0.0.0/20"
+      is_public  = true
+    }
+    private = {
+      cidr_block = "10.0.16.0/20"
+      is_public  = false
+    }
+    database = {
+      cidr_block = "10.0.32.0/20"
+      is_public  = false
+    }
+  }
+
+  nat_gateway = {
+    mode         = "regional"
+    subnet_layer = "public"
+  }
+
+  config = {
+    enable_dns_hostnames = true
+    enable_dns_support   = true
+  }
+}
+```
+
+### VPC with AWS Cloud WAN Core Network Integration
+This example shows how to connect a VPC to an AWS Cloud WAN Core Network with a specific routing policy label for advanced network segmentation and routing policies.
+
+```hcl
+module "vpc" {
+  source = "git::https://github.com/rarandab/tf-aws-vpc"
+
+  name_prefix           = "cloudwan-vpc"
+  region                = "us-west-2"
+  availability_zone_ids = ["usw2-az1", "usw2-az2"]
+  cidrs                 = ["10.1.0.0/16"]
+
+  subnet_layers = {
+    public = {
+      cidr_block = "10.1.0.0/20"
+      is_public  = true
+    }
+    private = {
+      cidr_block = "10.1.16.0/20"
+      is_public  = false
+    }
+    netatt = {
+      cidr_block = "10.1.240.0/24"
+      is_netatt  = true
+    }
+  }
+
+  core_network_attach = {
+    id                   = "core-network-12345678"
+    arn                  = "arn:aws:networkmanager::123456789012:core-network/core-network-12345678"
+    routing_policy_label = "production"
+    dns_support          = true
+    routes = {
+      private = ["0.0.0.0/0"]
+    }
+    tags = {
+      Environment = "production"
+      Team        = "networking"
+    }
+  }
+
+  config = {
+    enable_dns_hostnames = true
+    enable_dns_support   = true
+  }
+}
+
+
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
 
