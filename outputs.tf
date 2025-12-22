@@ -5,7 +5,7 @@ output "vpc" {
 
 output "azs" {
   description = "A list of availability zones specified as argument to this module"
-  value       = data.aws_availability_zone.this[*].name
+  value       = data.aws_availability_zone.this[*]
 }
 
 output "subnets" {
