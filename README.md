@@ -138,13 +138,13 @@ module "vpc" {
 | name\_prefix | Name prefix for the resources | `string` | n/a | yes |
 | nat\_gateway | NAT Gateway configuration | <pre>object({<br/>    mode         = optional(string, "regional")<br/>    subnet_layer = optional(string)<br/>    routes       = optional(map(list(string)), {})<br/>  })</pre> | `null` | no |
 | region | AWS region for all resources | `string` | n/a | yes |
-| route\_table\_per\_az | Create a route table per availability zone | `bool` | `false` | no |
 | subnet\_layers | List of subnet layer configurations | <pre>map(object({<br/>    cidr_block  = optional(string)<br/>    cidr_blocks = optional(list(string), [])<br/>    is_public   = optional(bool, false)<br/>    is_netatt   = optional(bool, false)<br/>    tags        = optional(map(string), {})<br/>  }))</pre> | `{}` | no |
 | transit\_gateway\_attach | values for the transit gateway attachment | <pre>object({<br/>    id                                 = string<br/>    appliance_mode_support             = optional(bool, false)<br/>    dns_support                        = optional(bool, false)<br/>    security_group_referencing_support = optional(bool, false)<br/>    routes                             = optional(map(list(string)), {})<br/>  })</pre> | `null` | no |
 ## Outputs
 
 | Name | Description |
 |------|-------------|
+| azs | A list of availability zones specified as argument to this module |
 | core\_network\_attachment | Core network attachment attributes |
 | flowlogs\_cwlg | Cloudwatch LogGroup for VPC Flow Logs |
 | network\_acls | Network ACLs attributes |
