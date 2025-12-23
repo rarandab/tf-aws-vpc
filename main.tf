@@ -10,6 +10,13 @@ resource "aws_vpc" "this" {
   }
 }
 
+resource "aws_vpc_ipv4_cidr_block_association" "this" {
+  count = length(var.cidr_blocks) - 1
+
+  vpc_id     = aws_vpc.this.id
+  cidr_block = element(var.cidr_blocks, count.index + 1)
+}
+
 resource "aws_vpc_dhcp_options" "this" {
   region               = var.region
   domain_name          = var.dhcp_options.domain_name
