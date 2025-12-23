@@ -1,5 +1,9 @@
 mock_provider "aws" {}
 
+mock_provider "aws" {
+  alias = "core_network"
+}
+
 variables {
   name_prefix           = "test"
   region                = "eu-west-1"

@@ -13,6 +13,10 @@ mock_provider "aws" {
   }
 }
 
+mock_provider "aws" {
+  alias = "core_network"
+}
+
 variables {
   name_prefix           = "test"
   region                = "eu-west-1"
@@ -120,6 +124,11 @@ run "regional_nat_gateway" {
   assert {
     condition     = aws_nat_gateway.regional[0].availability_mode == "regional"
     error_message = "Regional NAT gateway should have availability_mode set to regional"
+  }
+
+  assert {
+    condition     = aws_nat_gateway.regional[0].vpc_id == aws_vpc.this.id
+    error_message = "Regional NAT gateway should be attached to the VPC"
   }
 
   assert {

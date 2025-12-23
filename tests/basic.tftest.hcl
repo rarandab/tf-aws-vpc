@@ -1,5 +1,9 @@
 mock_provider "aws" {}
 
+mock_provider "aws" {
+  alias = "core_network"
+}
+
 variables {
   name_prefix           = "test"
   region                = "eu-west-1"
@@ -380,5 +384,157 @@ run "public" {
   assert {
     condition     = length(aws_eip.ngw) == 0
     error_message = "Should not create EIPs for regional NAT gateway mode"
+  }
+}
+
+run "multiple_cidrs" {
+  command = apply
+
+  variables {
+    cidr_blocks = ["10.0.0.0/20", "100.64.0.0/24"]
+    subnet_layers = {
+      pri = {
+        cidr_blocks = ["10.0.0.0/25", "10.0.0.128/25"]
+      }
+      pub = {
+        cidr_blocks = ["10.0.1.0/25", "10.0.1.128/25"]
+        is_public   = true
+      }
+      int = {
+        cidr_block = "100.64.0.0/24"
+      }
+    }
+  }
+
+  # VPC assertions - should still be single VPC with first CIDR
+  assert {
+    condition     = aws_vpc.this.cidr_block == "10.0.0.0/20"
+    error_message = "VPC CIDR block should be the first CIDR from cidr_blocks"
+  }
+
+  # Additional CIDR block assertions
+  assert {
+    condition     = length(aws_vpc_ipv4_cidr_block_association.this) == 1
+    error_message = "Should create 1 additional CIDR block association for the second CIDR"
+  }
+
+  assert {
+    condition     = aws_vpc_ipv4_cidr_block_association.this[0].cidr_block == "100.64.0.0/24"
+    error_message = "Additional CIDR block should be 100.64.0.0/24"
+  }
+
+  assert {
+    condition     = aws_vpc_ipv4_cidr_block_association.this[0].vpc_id == aws_vpc.this.id
+    error_message = "Additional CIDR block should be associated with the VPC"
+  }
+
+  # Private subnet assertions - should create 4 subnets (2 per AZ per CIDR)
+  assert {
+    condition     = length(aws_subnet.private) == 4
+    error_message = "Should create 4 private subnets for 2 availability zones across 2 CIDRs"
+  }
+
+  assert {
+    condition = alltrue([
+      for subnet in aws_subnet.private : subnet.vpc_id == aws_vpc.this.id
+    ])
+    error_message = "All private subnets should belong to the VPC"
+  }
+
+  # Verify private subnets have correct CIDR blocks
+  assert {
+    condition = alltrue([
+      for subnet in aws_subnet.private : contains(["10.0.0.0/25", "10.0.0.128/25", "100.64.0.0/25", "100.64.0.128/25"], subnet.cidr_block)
+    ])
+    error_message = "Private subnets should have the expected CIDR blocks from both VPC CIDRs"
+  }
+
+  assert {
+    condition     = length(aws_subnet.public) == 2
+    error_message = "Should create 2 public subnets for 2 availability zones across 2 CIDRs"
+  }
+
+  assert {
+    condition = alltrue([
+      for subnet in aws_subnet.public : subnet.vpc_id == aws_vpc.this.id
+    ])
+    error_message = "All public subnets should belong to the VPC"
+  }
+
+  # Verify public subnets have correct CIDR blocks
+  assert {
+    condition = alltrue([
+      for subnet in aws_subnet.public : contains(["10.0.1.0/25", "10.0.1.128/25"], subnet.cidr_block)
+    ])
+    error_message = "Public subnets should have the expected CIDR blocks from both VPC CIDRs"
+  }
+
+  # Route table assertions - should create route tables for all subnets
+  assert {
+    condition     = length(aws_route_table.private) == 4
+    error_message = "Should create 4 private route tables for 4 private subnets"
+  }
+
+  assert {
+    condition     = length(aws_route_table.public) == 2
+    error_message = "Should create 2 public route tables for 2 public subnets"
+  }
+
+  # Route table association assertions
+  assert {
+    condition     = length(aws_route_table_association.private) == 4
+    error_message = "Should create 4 private route table associations"
+  }
+
+  assert {
+    condition     = length(aws_route_table_association.public) == 2
+    error_message = "Should create 2 public route table associations"
+  }
+
+  # Network ACL assertions - should still be 1 per layer regardless of CIDRs
+  assert {
+    condition     = length(aws_network_acl.private) == 2
+    error_message = "Should create 1 private network ACL for the pri layer"
+  }
+
+  assert {
+    condition     = length(aws_network_acl.public) == 1
+    error_message = "Should create 1 public network ACL for the pub layer"
+  }
+
+  # Network ACL association assertions - should associate all subnets
+  assert {
+    condition     = length(aws_network_acl_association.private) == 4
+    error_message = "Should create 4 private network ACL associations"
+  }
+
+  assert {
+    condition     = length(aws_network_acl_association.public) == 2
+    error_message = "Should create 2 public network ACL associations"
+  }
+
+  # Internet Gateway assertions - should still be 1
+  assert {
+    condition     = length(aws_internet_gateway.this) == 1
+    error_message = "Should create 1 internet gateway regardless of number of CIDRs"
+  }
+
+  # Verify all subnets are distributed across availability zones
+  assert {
+    condition = alltrue([
+      for az in var.availability_zone_ids : length([
+        for subnet in aws_subnet.private : subnet if subnet.availability_zone_id == az
+      ]) == 2
+    ])
+    error_message = "Each availability zone should have 2 private subnets (1 for pri and 1 for int)"
+  }
+
+  assert {
+    condition = alltrue([
+      for az in var.availability_zone_ids : length([
+        for subnet in aws_subnet.public : subnet if subnet.availability_zone_id == az
+      ]) == 1
+    ])
+    error_message = "Each availability zone should have 1 public subnet (1 for pub)"
   }
 }

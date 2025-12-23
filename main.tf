@@ -211,6 +211,7 @@ resource "aws_nat_gateway" "regional" {
 
   region            = var.region
   availability_mode = "regional"
+  vpc_id            = aws_vpc.this.id
 
   tags = {
     Name = format("%s-ngw", var.name_prefix)
@@ -268,7 +269,8 @@ resource "aws_networkmanager_vpc_attachment" "this" {
 }
 
 resource "aws_networkmanager_attachment_accepter" "this" {
-  count = var.core_network_attach != null && var.core_network_attach.acceptance_required ? 1 : 0
+  provider = aws.core_network
+  count    = var.core_network_attach != null && var.core_network_attach.acceptance_required ? 1 : 0
 
   attachment_id   = aws_networkmanager_vpc_attachment.this[0].id
   attachment_type = aws_networkmanager_vpc_attachment.this[0].attachment_type
