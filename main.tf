@@ -57,6 +57,8 @@ resource "aws_subnet" "private" {
   tags = {
     Name = format("%s-snt-%s", var.name_prefix, each.value.name)
   }
+
+  depends_on = [aws_vpc_ipv4_cidr_block_association.this]
 }
 
 resource "aws_subnet" "public" {
@@ -71,6 +73,8 @@ resource "aws_subnet" "public" {
   tags = {
     Name = format("%s-snt-%s", var.name_prefix, each.value.name)
   }
+
+  depends_on = [aws_vpc_ipv4_cidr_block_association.this]
 }
 
 resource "aws_subnet" "netatt" {
@@ -84,6 +88,8 @@ resource "aws_subnet" "netatt" {
   tags = {
     Name = format("%s-snt-%s", var.name_prefix, each.value.name)
   }
+
+  depends_on = [aws_vpc_ipv4_cidr_block_association.this]
 }
 
 # Route tables
