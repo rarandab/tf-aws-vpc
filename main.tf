@@ -13,6 +13,7 @@ resource "aws_vpc" "this" {
 resource "aws_vpc_ipv4_cidr_block_association" "this" {
   count = length(var.cidr_blocks) - 1
 
+  region     = var.region
   vpc_id     = aws_vpc.this.id
   cidr_block = element(var.cidr_blocks, count.index + 1)
 }
