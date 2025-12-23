@@ -161,6 +161,31 @@ resource "aws_network_acl" "private" {
     Name = format("%s-acl-%s", var.name_prefix, each.key)
   }
 }
+
+resource "aws_network_acl_rule" "private_i_any" {
+  for_each = aws_network_acl.private
+
+  region         = var.region
+  network_acl_id = each.value.id
+  rule_number    = 1000
+  egress         = false
+  protocol       = -1
+  rule_action    = "allow"
+  cidr_block     = "0.0.0.0/0"
+}
+
+resource "aws_network_acl_rule" "private_e_any" {
+  for_each = aws_network_acl.private
+
+  region         = var.region
+  network_acl_id = each.value.id
+  rule_number    = 1000
+  egress         = true
+  protocol       = -1
+  rule_action    = "allow"
+  cidr_block     = "0.0.0.0/0"
+}
+
 resource "aws_network_acl_association" "private" {
   for_each = { for s in local.private_subnets : s.key => s }
 
@@ -179,6 +204,31 @@ resource "aws_network_acl" "public" {
     Name = format("%s-acl-%s", var.name_prefix, each.key)
   }
 }
+
+resource "aws_network_acl_rule" "public_i_any" {
+  for_each = aws_network_acl.public
+
+  region         = var.region
+  network_acl_id = each.value.id
+  rule_number    = 1000
+  egress         = false
+  protocol       = -1
+  rule_action    = "allow"
+  cidr_block     = "0.0.0.0/0"
+}
+
+resource "aws_network_acl_rule" "public_e_any" {
+  for_each = aws_network_acl.public
+
+  region         = var.region
+  network_acl_id = each.value.id
+  rule_number    = 1000
+  egress         = true
+  protocol       = -1
+  rule_action    = "allow"
+  cidr_block     = "0.0.0.0/0"
+}
+
 resource "aws_network_acl_association" "public" {
   for_each = { for s in local.public_subnets : s.key => s }
 
@@ -197,6 +247,31 @@ resource "aws_network_acl" "netatt" {
     Name = format("%s-acl-%s", var.name_prefix, each.key)
   }
 }
+
+resource "aws_network_acl_rule" "netatt_i_any" {
+  for_each = aws_network_acl.netatt
+
+  region         = var.region
+  network_acl_id = each.value.id
+  rule_number    = 1000
+  egress         = false
+  protocol       = -1
+  rule_action    = "allow"
+  cidr_block     = "0.0.0.0/0"
+}
+
+resource "aws_network_acl_rule" "netatt_e_any" {
+  for_each = aws_network_acl.netatt
+
+  region         = var.region
+  network_acl_id = each.value.id
+  rule_number    = 1000
+  egress         = true
+  protocol       = -1
+  rule_action    = "allow"
+  cidr_block     = "0.0.0.0/0"
+}
+
 resource "aws_network_acl_association" "netatt" {
   for_each = { for s in local.netatt_subnets : s.key => s }
 
