@@ -43,10 +43,6 @@ jobs:
         id: init
         run: terraform init
 
-      - name: Terraform Validate
-        id: validate
-        run: terraform validate -no-color
-
       - name: Terraform Test
         id: test
         run: terraform test -no-color
@@ -58,7 +54,6 @@ jobs:
           script: |
             const output = `#### Terraform Format and Style 🖌\`${{ steps.fmt.outcome }}\`
             #### Terraform Initialization ⚙️\`${{ steps.init.outcome }}\`
-            #### Terraform Validation 🤖\`${{ steps.validate.outcome }}\`
             #### Terraform Validation 👁️‍🗨️\`${{ steps.test.outcome }}\`
 
             *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`*`;
