@@ -38,7 +38,9 @@ resource "aws_vpc_dhcp_options_association" "this" {
 }
 
 resource "aws_internet_gateway" "this" {
-  count  = local.has_igw ? 1 : 0
+  count = local.has_igw ? 1 : 0
+
+  region = var.region
   vpc_id = aws_vpc.this.id
 
   tags = {
