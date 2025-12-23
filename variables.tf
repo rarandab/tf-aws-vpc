@@ -121,6 +121,7 @@ variable "core_network_attach" {
     appliance_mode_support             = optional(bool, false)
     dns_support                        = optional(bool, false)
     security_group_referencing_support = optional(bool, false)
+    acceptance_required                = optional(bool, false)
     routes                             = optional(map(list(string)), {})
   })
   default = null

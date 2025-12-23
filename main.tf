@@ -267,6 +267,13 @@ resource "aws_networkmanager_vpc_attachment" "this" {
   )
 }
 
+resource "aws_networkmanager_attachment_accepter" "this" {
+  count = var.core_network_attach != null && var.core_network_attach.acceptance_required ? 1 : 0
+
+  attachment_id   = aws_networkmanager_vpc_attachment.this[0].id
+  attachment_type = aws_networkmanager_vpc_attachment.this[0].attachment_type
+}
+
 # Transit Gateway attachment
 resource "aws_ec2_transit_gateway_vpc_attachment" "this" {
   count = var.transit_gateway_attach != null ? 1 : 0
@@ -339,7 +346,8 @@ resource "aws_route" "cwn" {
   core_network_arn           = var.core_network_attach.arn
 
   depends_on = [
-    aws_networkmanager_vpc_attachment.this
+    aws_networkmanager_vpc_attachment.this,
+    aws_networkmanager_attachment_accepter.this
   ]
 }
 
