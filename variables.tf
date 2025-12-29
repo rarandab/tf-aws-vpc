@@ -62,7 +62,25 @@ variable "subnet_layers" {
     cidr_blocks = optional(list(string), [])
     is_public   = optional(bool, false)
     is_netatt   = optional(bool, false)
-    tags        = optional(map(string), {})
+    nacls = optional(object({
+      inbound = optional(list(object({
+        rule_no    = number
+        protocol   = string
+        from_port  = number
+        to_port    = number
+        cidr_block = string
+        action     = string
+      })))
+      outbound = optional(list(object({
+        rule_no    = number
+        protocol   = string
+        from_port  = number
+        to_port    = number
+        cidr_block = string
+        action     = string
+      })))
+    }))
+    tags = optional(map(string), {})
   }))
   default = {}
   validation {
@@ -170,11 +188,12 @@ variable "transit_gateway_attach" {
 variable "flow_logs" {
   description = "Flow Logs configuration"
   type = object({
-    retention_in_days = optional(number, 30)
-    iam_role_arn      = optional(string)
-    kms_key_arn       = optional(string)
-    log_format        = optional(string)
-    tags              = optional(map(string), {})
+    retention_in_days        = optional(number, 30)
+    iam_role_arn             = optional(string)
+    kms_key_arn              = optional(string)
+    log_format               = optional(string)
+    max_aggregation_interval = optional(number, 600)
+    tags                     = optional(map(string), {})
   })
   default = null
 }
