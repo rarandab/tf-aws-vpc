@@ -124,6 +124,14 @@ resource "aws_route_table" "public" {
     Name = format("%s-rtb-%s", var.name_prefix, each.value.name)
   }
 }
+resource "aws_route" "public_igw" {
+  for_each = { for s in local.public_subnets : s.key => s }
+
+  region                 = var.region
+  route_table_id         = aws_route_table.public[each.key].id
+  destination_cidr_block = "0.0.0.0/0"
+  gateway_id             = aws_internet_gateway.this[0].id
+}
 resource "aws_route_table_association" "public" {
   for_each = { for s in local.public_subnets : s.key => s }
 
