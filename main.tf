@@ -550,11 +550,12 @@ resource "aws_iam_role_policy" "permissions_kms_flog_logs" {
 resource "aws_flow_log" "this" {
   count = var.flow_logs != null ? 1 : 0
 
-  region               = var.region
-  iam_role_arn         = var.flow_logs.iam_role_arn != null ? var.flow_logs.iam_role_arn : aws_iam_role.flow_logs[0].arn
-  log_destination      = aws_cloudwatch_log_group.flow_logs[0].arn
-  log_destination_type = "cloud-watch-logs"
-  log_format           = var.flow_logs.log_format
-  traffic_type         = "ALL"
-  vpc_id               = aws_vpc.this.id
+  region                   = var.region
+  iam_role_arn             = var.flow_logs.iam_role_arn != null ? var.flow_logs.iam_role_arn : aws_iam_role.flow_logs[0].arn
+  log_destination          = aws_cloudwatch_log_group.flow_logs[0].arn
+  log_destination_type     = "cloud-watch-logs"
+  log_format               = var.flow_logs.log_format
+  max_aggregation_interval = var.flow_logs.max_aggregation_interval
+  traffic_type             = "ALL"
+  vpc_id                   = aws_vpc.this.id
 }
